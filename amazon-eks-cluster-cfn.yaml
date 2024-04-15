@@ -1,0 +1,78 @@
+---
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'Create EKS cluster'
+
+Parameters:
+  
+  EksVpcStack:
+    Type: String
+    Description: The stack name of the EKS VPC stack that contains the subnets and security groups needed for FckNat
+    Default: EKS-VPC-Stack-CF
+  
+  ClusterName:
+    Description:  The cluster name
+    Type: String
+    
+  ClusterVersion:
+    Description: Cluster Version
+    Type: String
+    Default: "latest"
+    AllowedValues:
+      - "1.26"
+      - "1.27"
+      - "1.28"
+      - "1.29"
+      - "latest"
+      
+Conditions:
+  CreateLatestVersionCluster: !Equals [ !Ref ClusterVersion, latest ]
+  CreateCustomVersionCluster: !Not [!Equals [!Ref ClusterVersion, latest]]
+  
+Resources:
+  EKSCluster:
+    Type: AWS::EKS::Cluster
+    Properties:
+      Name: !Ref ClusterName
+      AccessConfig:
+        AuthenticationMode: API_AND_CONFIG_MAP
+      ResourcesVpcConfig:
+        SecurityGroupIds:
+          - Fn::Select:
+            - '0'
+            - {"Fn::Split": [ ",", {"Fn::ImportValue": {"Fn::Sub": "${EksVpcStack}-SecurityGroups"}} ]}
+        SubnetIds:
+          - {"Fn::ImportValue": {"Fn::Sub": "${EksVpcStack}-PrivateSubnet01"}}
+          - {"Fn::ImportValue": {"Fn::Sub": "${EksVpcStack}-PrivateSubnet02"}}
+          - {"Fn::ImportValue": {"Fn::Sub": "${EksVpcStack}-PrivateSubnet03"}}
+      RoleArn: !GetAtt EksServiceRole.Arn
+      Version:
+        Fn::If:
+          - CreateCustomVersionCluster
+          - !Ref ClusterVersion
+          - 1.29
+
+  EksServiceRole:
+    Type:  AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          -
+            Effect: "Allow"
+            Principal:
+              Service:
+                - "eks.amazonaws.com"
+            Action:
+              - "sts:AssumeRole"
+      Path: "/"
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AmazonEKSClusterPolicy
+        - arn:aws:iam::aws:policy/AmazonEKSServicePolicy
+      RoleName: !Sub "${AWS::StackName}-EksSvcRole"
+      
+Outputs:
+  VpcId:
+    Value: {"Fn::ImportValue": {"Fn::Sub": "${EksVpcStack}-VpcId"}}
+  SecurityGroups:
+    Description: SecurityGroup for cluster control plane comms w. worker nodes
+    Value: {"Fn::ImportValue": {"Fn::Sub": "${EksVpcStack}-SecurityGroups"}}

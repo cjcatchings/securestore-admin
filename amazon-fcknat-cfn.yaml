@@ -1,0 +1,237 @@
+---
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'Attach FckNat instances to existing VPC from EKS VPC Stack'
+
+Parameters:
+
+  EksVpcStack:
+    Type: String
+    Description: The stack name of the EKS VPC stack that contains the subnets and security groups needed for FckNat
+    Default: EKS-VPC-Stack-CF
+
+  VpcBlock:
+    Type: String
+    Default: 172.31.0.0/16
+    Description: The CIDR range for the VPC. This should be a valid private (RFC 1918) CIDR range.
+
+  FckNatAmi:
+    Type: String
+    Default: "ami-0adfb4e8d8a3bdf82"
+    Description: AMI ID for the FckNat instance
+
+Metadata:
+  AWS::CloudFormation::Interface:
+    ParameterGroups:
+      -
+        Label:
+          default: "Configuration"
+        Parameters:
+          - FckNatAmi
+
+Resources:
+  PrivateRoute01:
+    DependsOn:
+    - FckNatInterface01
+    Type: AWS::EC2::Route
+    Properties:
+      RouteTableId: {"Fn::ImportValue": {"Fn::Sub": "${EksVpcStack}-PrivateRouteTable01"}}
+      DestinationCidrBlock: 0.0.0.0/0
+      NetworkInterfaceId: !Ref FckNatInterface01
+
+  PrivateRoute02:
+    DependsOn:
+    - FckNatInterface02
+    Type: AWS::EC2::Route
+    Properties:
+      RouteTableId: {"Fn::ImportValue": {"Fn::Sub": "${EksVpcStack}-PrivateRouteTable02"}}
+      DestinationCidrBlock: 0.0.0.0/0
+      NetworkInterfaceId: !Ref FckNatInterface02
+
+  PrivateRoute03:
+    DependsOn:
+    - FckNatInterface03
+    Type: AWS::EC2::Route
+    Properties:
+      RouteTableId: {"Fn::ImportValue": {"Fn::Sub": "${EksVpcStack}-PrivateRouteTable03"}}
+      DestinationCidrBlock: 0.0.0.0/0
+      NetworkInterfaceId: !Ref FckNatInterface03
+
+  FckNatInterface01:
+    Type: AWS::EC2::NetworkInterface
+    Properties:
+      SubnetId: {"Fn::ImportValue": {"Fn::Sub": "${EksVpcStack}-PublicSubnet01"}}
+      GroupSet:
+        - Fn::GetAtt:
+          - NatSecurityGroup
+          - GroupId
+      SourceDestCheck: false
+
+  FckNatInterface02:
+    Type: AWS::EC2::NetworkInterface
+    Properties:
+      SubnetId: {"Fn::ImportValue": {"Fn::Sub": "${EksVpcStack}-PublicSubnet02"}}
+      GroupSet:
+        - Fn::GetAtt:
+          - NatSecurityGroup
+          - GroupId
+      SourceDestCheck: false
+
+  FckNatInterface03:
+    Type: AWS::EC2::NetworkInterface
+    Properties:
+      SubnetId: {"Fn::ImportValue": {"Fn::Sub": "${EksVpcStack}-PublicSubnet03"}}
+      GroupSet:
+        - Fn::GetAtt:
+          - NatSecurityGroup
+          - GroupId
+      SourceDestCheck: false
+
+  NatSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Security Group for NAT
+      SecurityGroupIngress:
+        - CidrIp: 172.31.0.0/16
+          Description: Allow inbound traffic from VPC resources
+          IpProtocol: "-1"
+      SecurityGroupEgress:
+        - CidrIp: 0.0.0.0/0
+          Description: Allow all outbound traffic by default
+          IpProtocol: "-1"
+      VpcId: {"Fn::ImportValue": {"Fn::Sub": "${EksVpcStack}-VpcId"}}
+
+  NatRole:
+    Type:  AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action: sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service: ec2.amazonaws.com
+      Policies:
+        - PolicyDocument:
+            Statement:
+              - Action:
+                - ec2:AttachnetworkInterface
+                - ec2:ModifyNetworkInterfaceAttribute
+                Effect: Allow
+                Resource: "*"
+            Version: "2012-10-17"
+          PolicyName: attachEniPolicy
+        - PolicyDocument:
+            Statement:
+              - Action:
+                - ec2:AssociateAddress
+                - ec2:DisassociateAddress
+                Effect: Allow
+                Resource: "*"
+            Version: "2012-10-17"
+          PolicyName: associateNatAddressPolicy
+
+  FckNatInstanceProfile:
+    Type: AWS::IAM::InstanceProfile
+    Properties:
+      Roles:
+        - Ref: NatRole
+
+  FckNatInstance01:
+    Type: AWS::EC2::Instance
+    DependsOn:
+      - NatRole
+      - NatSecurityGroup
+      - FckNatInterface01
+    Properties:
+      SubnetId: {"Fn::ImportValue": {"Fn::Sub": "${EksVpcStack}-PublicSubnet01"}}
+      ImageId: !Ref FckNatAmi
+      InstanceType: t2.micro
+      IamInstanceProfile:
+        Ref: FckNatInstanceProfile
+      SecurityGroupIds:
+        - Fn::GetAtt:
+          - NatSecurityGroup
+          - GroupId
+      UserData:
+        Fn::Base64:
+          Fn::Join:
+            - ""
+            - - |-
+                #!/bin/bash
+                echo "eni_id=
+              - Ref: FckNatInterface01
+              - |-
+                " >> /etc/fck-nat.conf
+                service fck-nat restart
+      Tags:
+        - Key: Name
+          Value: !Sub "${AWS::StackName}-FckNatInst01"
+
+  FckNatInstance02:
+    Type: AWS::EC2::Instance
+    DependsOn:
+      - NatRole
+      - NatSecurityGroup
+      - FckNatInterface02
+    Properties:
+      SubnetId: {"Fn::ImportValue": {"Fn::Sub": "${EksVpcStack}-PublicSubnet02"}}
+      ImageId: !Ref FckNatAmi
+      InstanceType: t2.micro
+      IamInstanceProfile:
+        Ref: FckNatInstanceProfile
+      SecurityGroupIds:
+        - Fn::GetAtt:
+          - NatSecurityGroup
+          - GroupId
+      UserData:
+        Fn::Base64:
+          Fn::Join:
+            - ""
+            - - |-
+                #!/bin/bash
+                echo "eni_id=
+              - Ref: FckNatInterface02
+              - |-
+                " >> /etc/fck-nat.conf
+                service fck-nat restart
+      Tags:
+        - Key: Name
+          Value: !Sub "${AWS::StackName}-FckNatInst02"
+
+  FckNatInstance03:
+    Type: AWS::EC2::Instance
+    DependsOn:
+      - NatRole
+      - NatSecurityGroup
+      - FckNatInterface03
+    Properties:
+      SubnetId: {"Fn::ImportValue": {"Fn::Sub": "${EksVpcStack}-PublicSubnet03"}}
+      ImageId: !Ref FckNatAmi
+      InstanceType: t2.micro
+      IamInstanceProfile:
+        Ref: FckNatInstanceProfile
+      SecurityGroupIds:
+        - Fn::GetAtt:
+          - NatSecurityGroup
+          - GroupId
+      UserData:
+        Fn::Base64:
+          Fn::Join:
+            - ""
+            - - |-
+                #!/bin/bash
+                echo "eni_id=
+              - Ref: FckNatInterface03
+              - |-
+                " >> /etc/fck-nat.conf
+                service fck-nat restart
+      Tags:
+        - Key: Name
+          Value: !Sub "${AWS::StackName}-FckNatInst03"
+          
+Outputs:
+  FckNatInstances:
+    Description: FckNat Instance Ids
+    Value: !Join [",", [!Ref FckNatInstance01, !Ref FckNatInstance02, !Ref FckNatInstance03]]
+    Export:
+      Name:
+        'Fn::Sub': '${AWS::StackName}-FckNatInstances'

@@ -1,0 +1,156 @@
+---
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'Create EKS Node Group from CloudFormation'
+
+Metadata:
+  AWS::CloudFormation::Interface:
+    ParameterGroups:
+      -
+        Label:
+          default: "EKS Configuration"
+        Parameters:
+          - NodeImageId
+          - ClusterName
+          - ClusterControlPlaneSecurityGroup
+          - NodeGroupName
+          - EksClusterAdminPrincipal
+      -
+        Label:
+          default: "Auto Scaling Configuration"
+        Parameters:
+          - NodeAutoScalingGroupMinSize
+          - NodeAutoScalingGroupDesiredSize
+          - NodeAutoScalingGroupMaxSize
+          - NodeInstanceType
+
+Parameters:
+
+  EksVpcStack:
+    Type: String
+    Description: The stack name of the EKS VPC stack that contains the subnets and security groups needed for FckNat
+    Default: EKS-VPC-Stack-CF
+
+  ClusterName:
+    Description:  The cluster name
+    Type: String
+
+  NodeImageId:
+    Type: String
+    Default: ""
+    Description: Specify AMI id for the node instances. Leave it blank if you preferred the latest EKS-optimized AMI
+
+  NodeImageIdSSMParam:
+    Type: "AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>"
+    Default: /aws/service/eks/optimized-ami/1.29/amazon-linux-2/recommended/image_id
+    Description: AWS Systems Manager Parameter Store parameter of the AMI ID for the worker node instances.
+
+  NodeInstanceType:
+    Description:  Default EC2 instance type for node instances
+    Type: String
+    Default: t3.medium
+    AllowedValues:
+      - t2.micro
+      - t3.micro
+      - t2.small
+      - t3.small
+      - t2.medium
+      - t3.medium
+      - t2.large
+      - t3.large
+    ConstraintDescription:  Only t2/t3 instances up to large allowed
+
+  NodeVolumeSize:
+    Type: Number
+    Description:  Node volume size (in GB)
+    Default: 20
+
+  NodeAutoScalingGroupMinSize:
+    Type: Number
+    Description: Minimum size of Node Group ASG
+    Default: 1
+
+  NodeAutoScalingGroupDesiredSize:
+    Type: Number
+    Description: Desired size of Node Group ASG
+    Default: 2
+
+  NodeAutoScalingGroupMaxSize:
+    Type: Number
+    Description: Maximum size of Node Group ASG
+    Default: 3
+    
+  ExtraNodeLabels:
+    Description: Extra Node Labels(seperated by comma)
+    Type: String
+    Default: "foo=bar"
+    
+  NodeGroupName:
+    Description: Unique identifier for the Node Group.
+    Type: String
+    
+  EksClusterAdminPrincipal:
+    Description: ARN of the EKS Cluster Admin principal (role/user)
+    Type: String
+      
+Conditions:
+  HasNodeImageId: !Not [ !Equals [ !Ref NodeImageId, "" ] ]
+  
+Resources:
+  
+  NodeInstanceRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service:
+            - ec2.amazonaws.com
+          Action:
+          - sts:AssumeRole
+      Path: "/"
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy
+        - arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy
+        - arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly
+      
+  NodeGroup:
+    Type: AWS::EKS::Nodegroup
+    Properties:
+      NodegroupName: !Ref NodeGroupName
+      NodeRole: !GetAtt NodeInstanceRole.Arn
+      ClusterName: !Ref ClusterName
+      ScalingConfig:
+        MinSize: !Ref NodeAutoScalingGroupMinSize
+        DesiredSize: !Ref NodeAutoScalingGroupDesiredSize
+        MaxSize: !Ref NodeAutoScalingGroupMaxSize
+      InstanceTypes:
+        - !Ref NodeInstanceType
+      DiskSize: !Ref NodeVolumeSize
+      Subnets:
+        - {"Fn::ImportValue": {"Fn::Sub": "${EksVpcStack}-PrivateSubnet01"}}
+        - {"Fn::ImportValue": {"Fn::Sub": "${EksVpcStack}-PrivateSubnet02"}}
+        - {"Fn::ImportValue": {"Fn::Sub": "${EksVpcStack}-PrivateSubnet03"}}
+      Tags:
+        Name: !Sub "${ClusterName}-${NodeGroupName}-ASG-Node"
+        
+  AccessEntry:
+    Type: AWS::EKS::AccessEntry
+    Properties:
+      ClusterName: !Ref ClusterName
+      Username: 'EksClusterAdminPrin'
+      KubernetesGroups:
+        - cluster-admin
+      AccessPolicies:
+        - PolicyArn: 'arn:aws:eks::aws:cluster-access-policy/AmazonEKSClusterAdminPolicy'
+          AccessScope:
+            Type: 'cluster'
+      PrincipalArn: !Ref EksClusterAdminPrincipal
+     
+Outputs:
+  NodeInstanceRoleArn:
+    Description: The node instance role
+    Value: !GetAtt NodeInstanceRole.Arn
+    Export:
+      Name: !Sub "${AWS::StackName}-NodeInstanceRoleArn"
