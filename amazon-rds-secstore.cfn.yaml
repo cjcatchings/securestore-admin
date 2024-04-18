@@ -1,0 +1,56 @@
+---
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'Create SecureStore RDS Instance'
+
+Parameters:
+  SnapshotIdentifierName:
+    Type: String
+    Description:  The name of the RDS Snapshot Identifier used to restore this DB from
+  DBInstanceClass:
+    Type: String
+    Description:  The instance class of the DB (defaults to t3.micro)
+    Default: db.t3.micro
+  DBMasterUsername:
+    Type: String
+    Description:  The master user for the database.  Default is postgres
+    Default: postgres
+  EksVpcStack:
+    Type: String
+    Description: The stack name of the EKS VPC stack that contains the subnets and security groups so the EKS cluster can communicate with RDS
+    Default: EKS-VPC-Stack-CF
+
+Resources:
+  SecStoreRDSSubnetGroup:
+    Type:  AWS::RDS::DBSubnetGroup
+    Properties:
+      DBSubnetGroupDescription: Group of private subnets for RDS DB
+      SubnetIds:
+        - {"Fn::ImportValue": {"Fn::Sub": "${EksVpcStack}-PrivateSubnet01"}}
+        - {"Fn::ImportValue": {"Fn::Sub": "${EksVpcStack}-PrivateSubnet02"}}
+        - {"Fn::ImportValue": {"Fn::Sub": "${EksVpcStack}-PrivateSubnet03"}}
+  SecStoreRDS:
+    Type:  AWS::RDS::DBInstance
+    Properties:
+      DBSnapshotIdentifier:  !Sub "arn:aws:rds:${AWS::Region}:${AWS::AccountId}:snapshot:${SnapshotIdentifierName}"
+      DBInstanceClass: !Ref DBInstanceClass
+      DBInstanceIdentifier: securestore
+      DBSubnetGroupName: !Ref SecStoreRDSSubnetGroup
+      StorageType: gp2
+      AllocatedStorage: "20"
+      MasterUsername: !Ref DBMasterUsername
+      MasterUserPassword: '{{resolve:ssm:/SecureStore/rdsmasterpw:1}}'
+      VPCSecurityGroups:
+        - Fn::Select:
+          - '0'
+          - {"Fn::Split": [ ",", {"Fn::ImportValue": {"Fn::Sub": "${EksVpcStack}-SecurityGroups"}} ]}
+
+Outputs:
+  SecStoreRDSUrl:
+    Description: The URL endpoint for the created RDS instance
+    Value: !GetAtt SecStoreRDS.Endpoint.Address
+    Export:
+      Name:
+        'Fn::Sub': '${AWS::StackName}-SecStoreRDSUrl'
+  SecStoreRDSName:
+    Description:  The instance name of the new RDS DB
+    Value: !Ref SecStoreRDS
