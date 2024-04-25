@@ -1,8 +1,6 @@
 version: 0.2
 
 env:
-  variables:
-    AWS_PROFILE: "default"
   parameter-store:
     RDS_SS_SNAPSHOT: /SecureStore/rds/snapshot/name
 
