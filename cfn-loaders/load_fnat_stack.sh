@@ -5,8 +5,7 @@ fi
 EXISTING_STACK=$(aws cloudformation list-stacks \
     --stack-status-filter CREATE_COMPLETE \
     --output text \
-    --query "StackSummaries[?StackName=='Eks-FckNat-Stack-CF'].StackName" \
-    --profile $AWS_PROFILE)
+    --query "StackSummaries[?StackName=='Eks-FckNat-Stack-CF'].StackName")
 if ! [ -n ${EXISTING_STACK} ]; then
     echo "'${EXISTING_STACK}' already exists."
     exit 0
@@ -14,6 +13,5 @@ fi
 aws cloudformation deploy \
     --template-file $(dirname "$0")/../amazon-fcknat-cfn.yaml \
     --stack-name Eks-FckNat-Stack-CF \
-    --capabilities "[\"CAPABILITY_IAM\"]" \
-    --profile $AWS_PROFILE
+    --capabilities "[\"CAPABILITY_IAM\"]"
 [ $? -eq 0 ]  || exit 1
