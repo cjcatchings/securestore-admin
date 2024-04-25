@@ -35,6 +35,7 @@ Resources:
       Name: !Ref ClusterName
       AccessConfig:
         AuthenticationMode: API_AND_CONFIG_MAP
+        BootstrapClusterCreatorAdminPermissions: false
       ResourcesVpcConfig:
         SecurityGroupIds:
           - Fn::Select:
@@ -71,6 +72,9 @@ Resources:
       RoleName: !Sub "${AWS::StackName}-EksSvcRole"
       
 Outputs:
+  EksClusterEndpoint:
+    Description:  The URL endpoint for the EKS Cluster
+    Value: !GetAtt EKSCluster.Endpoint
   VpcId:
     Value: {"Fn::ImportValue": {"Fn::Sub": "${EksVpcStack}-VpcId"}}
   SecurityGroups:

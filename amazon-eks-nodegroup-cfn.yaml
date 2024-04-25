@@ -91,9 +91,11 @@ Parameters:
   EksClusterAdminPrincipal:
     Description: ARN of the EKS Cluster Admin principal (role/user)
     Type: String
+    Default: ""
       
 Conditions:
   HasNodeImageId: !Not [ !Equals [ !Ref NodeImageId, "" ] ]
+  CustomClusterAdmin: !Not [ !Equals [ !Ref EksClusterAdminPrincipal, "" ]]
   
 Resources:
   
@@ -110,6 +112,18 @@ Resources:
           Action:
           - sts:AssumeRole
       Path: "/"
+      Policies:
+        - PolicyName: S3ForSSCerts
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - s3:ListBucket
+                  - s3:GetObject
+                Resource:
+                  - arn:aws:s3:::secstoreutil
+                  - arn:aws:s3:::secstoreutil/*
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy
         - arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy
@@ -137,6 +151,7 @@ Resources:
         
   AccessEntry:
     Type: AWS::EKS::AccessEntry
+    Condition: CustomClusterAdmin
     Properties:
       ClusterName: !Ref ClusterName
       Username: 'EksClusterAdminPrin'

@@ -1,0 +1,19 @@
+version: 0.2
+
+env:
+  variables:
+    AWS_PROFILE: "AWS_PROFILE: "default"
+  parameter-store:
+    RDS_SS_SNAPSHOT: /SecureStore/rds/snapshot/name
+
+phases:
+  build:
+    commands:
+      - echo "Create SS RDS DB for our app database..."
+      - ./cfn-loaders/load_rds_ss_stack.sh
+      - |
+        [ $? -eq 0 ]  || exit 1
+      - echo "Now create FckNat Stack allow NAT for our private resources..."
+      - ./cfn-loaders/load_fnat_stack.sh
+      - |
+        [ $? -eq 0 ]  || exit 1

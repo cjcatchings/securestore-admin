@@ -1,0 +1,22 @@
+---
+AWSTemplateFormatVersion: "2010-09-09"
+Description:  A general admin table to store data to be references between stacks and EKS resources
+Resources: 
+  SecStoreAndMoreAdmin:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      AttributeDefinitions:
+        - AttributeName: ResourceIdentifier
+          AttributeType: S
+      KeySchema:
+        - AttributeName: ResourceIdentifier
+          KeyType: HASH
+      ProvisionedThroughput:
+        ReadCapacityUnits: 1
+        WriteCapacityUnits: 1
+      TableName: SecStoreAndMoreAdmin
+
+Outputs:
+  SecStoreandMoreAdminArn:
+    Description:  The ARN of the newly created DynamoDB table
+    Value: !GetAtt SecStoreAndMoreAdmin.Arn

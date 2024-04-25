@@ -30,6 +30,7 @@ Resources:
         - {"Fn::ImportValue": {"Fn::Sub": "${EksVpcStack}-PrivateSubnet03"}}
   SecStoreRDS:
     Type:  AWS::RDS::DBInstance
+    DeletionPolicy: Delete
     Properties:
       DBSnapshotIdentifier:  !Sub "arn:aws:rds:${AWS::Region}:${AWS::AccountId}:snapshot:${SnapshotIdentifierName}"
       DBInstanceClass: !Ref DBInstanceClass
