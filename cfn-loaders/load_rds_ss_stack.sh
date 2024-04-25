@@ -10,7 +10,7 @@ EXISTING_STACK=$(aws cloudformation list-stacks \
     --stack-status-filter CREATE_COMPLETE \
     --output text \
     --query "StackSummaries[?StackName=='Eks-Rds-SS-Stack-CF'].StackName" \
-    --profile Elvira-PowerDevs)
+    --profile $AWS_PROFILE)
 if ! [ -n ${EXISTING_STACK} ]; then
     echo "'${EXISTING_STACK}' already exists."
     exit 0
@@ -22,7 +22,7 @@ aws cloudformation deploy \
   --profile $AWS_PROFILE
 [ $? -eq 0 ]  || exit 1
 
-if [ $(aws dynamodb list-tables --profile Elvira-PowerDevs --query "contains(TableNames, 'SecStoreAndMoreAdmin')") == true ]; then
+if [ $(aws dynamodb list-tables --profile $AWS_PROFILE --query "contains(TableNames, 'SecStoreAndMoreAdmin')") == true ]; then
   DBS_URI_RI="SecStoreRDSUri"
   echo "SecStoreAndMoreAdmin table found.  Saving RDS URL to RI $DBS_URI_RI."
   aws dynamodb put-item \

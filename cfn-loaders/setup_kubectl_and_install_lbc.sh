@@ -57,11 +57,11 @@ eksctl create iamserviceaccount --cluster $EKS_CLUSTER_NAME \
 [ $? -eq 0 ]  || exit 1
 
 for OIDC_ARN in $(aws iam list-open-id-connect-providers \
-  --profile Elvira-PowerDevs --output text \
+  --profile $AWS_PROFILE --output text \
   --query 'OpenIDConnectProviderList[?contains(@.Arn,`oidc.eks`)]')
 do
    CL_IS_SS=$(aws iam get-open-id-connect-provider \
-     --profile Elvira-PowerDevs \
+     --profile $AWS_PROFILE \
      --open-id-connect-provider-arn $OIDC_ARN \
      --output text \
      --query 'Tags[?contains(@.Key,`alpha.eksctl.io/cluster-name`)].Value')

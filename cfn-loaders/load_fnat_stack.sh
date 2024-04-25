@@ -6,7 +6,7 @@ EXISTING_STACK=$(aws cloudformation list-stacks \
     --stack-status-filter CREATE_COMPLETE \
     --output text \
     --query "StackSummaries[?StackName=='Eks-FckNat-Stack-CF'].StackName" \
-    --profile Elvira-PowerDevs)
+    --profile $AWS_PROFILE)
 if ! [ -n ${EXISTING_STACK} ]; then
     echo "'${EXISTING_STACK}' already exists."
     exit 0
