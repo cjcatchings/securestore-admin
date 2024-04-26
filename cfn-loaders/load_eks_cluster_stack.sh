@@ -18,8 +18,6 @@ aws cloudformation deploy \
 --stack-name Eks-Cluster-Stack-CF \
 --capabilities "[\"CAPABILITY_IAM\", \"CAPABILITY_NAMED_IAM\"]" \
 --parameter-overrides "ClusterName=$EKS_CLUSTER_NAME"
-[ $? -eq 0 ]  || exit 1
-
 
 if [ $(aws dynamodb list-tables --query "contains(TableNames, 'SecStoreAndMoreAdmin')") == true ]; then
   EKS_CLUSTER_ENDPOINT="SecStoreEksClusterEndpoint"

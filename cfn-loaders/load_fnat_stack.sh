@@ -13,4 +13,3 @@ aws cloudformation deploy \
     --template-file $(dirname "$0")/../amazon-fcknat-cfn.yaml \
     --stack-name Eks-FckNat-Stack-CF \
     --capabilities "[\"CAPABILITY_IAM\"]"
-[ $? -eq 0 ]  || exit 1

@@ -26,4 +26,3 @@ aws cloudformation deploy \
   --stack-name Eks-NodeGroup-Stack-CF \
   --capabilities "[\"CAPABILITY_IAM\", \"CAPABILITY_NAMED_IAM\"]" \
   --parameter-overrides ClusterName=$EKS_CLUSTER_NAME NodeGroupName=$EKS_NODEGROUP_NAME EksClusterAdminPrincipal=$EKS_CADMIN_ARN
-[ $? -eq 0 ]  || exit 1
