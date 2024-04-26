@@ -16,7 +16,8 @@ fi
 aws cloudformation deploy \
   --template-file $(dirname "$0")/../amazon-rds-secstore-cfn.yaml \
   --stack-name Eks-Rds-SS-Stack-CF \
-  --parameter-overrides "SnapshotIdentifierName=$RDS_SS_SNAPSHOT"
+  --parameter-overrides "SnapshotIdentifierName=$RDS_SS_SNAPSHOT" \
+  --debug
 
 if [ $(aws dynamodb list-tables --query "contains(TableNames, 'SecStoreAndMoreAdmin')") == true ]; then
   DBS_URI_RI="SecStoreRDSUri"
