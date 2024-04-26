@@ -1,6 +1,5 @@
 if [ -z "${AWS_PROFILE}" ]; then
-    echo "'AWS_PROFILE' not set."
-    exit 1
+    echo "'AWS_PROFILE' not set.  Consider setting this variable in a local env."
 fi
 EXISTING_STACK=$(aws cloudformation list-stacks \
     --stack-status-filter CREATE_COMPLETE \

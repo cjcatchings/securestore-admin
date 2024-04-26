@@ -1,6 +1,5 @@
 if [ -z "${AWS_PROFILE}" ]; then
-    echo "'AWS_PROFILE' not set."
-    exit 1
+    echo "'AWS_PROFILE' not set.  Consider setting this variable in a local env."
 fi
 if [ -z "${EKS_CLUSTER_NAME}"  ]; then
     echo "'EKS_CLUSTER_NAME' not set."
