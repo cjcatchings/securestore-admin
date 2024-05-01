@@ -28,6 +28,9 @@ Resources:
         - {"Fn::ImportValue": {"Fn::Sub": "${EksVpcStack}-PrivateSubnet01"}}
         - {"Fn::ImportValue": {"Fn::Sub": "${EksVpcStack}-PrivateSubnet02"}}
         - {"Fn::ImportValue": {"Fn::Sub": "${EksVpcStack}-PrivateSubnet03"}}
+      Tags:
+        - Key: CJCProjectName
+          Value: SecureStore
   SecStoreRDS:
     Type:  AWS::RDS::DBInstance
     DeletionPolicy: Delete

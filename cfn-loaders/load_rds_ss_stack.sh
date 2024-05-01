@@ -10,7 +10,7 @@ EXISTING_STACK=$(aws cloudformation list-stacks \
     --output text \
     --query "StackSummaries[?StackName=='Eks-Rds-SS-Stack-CF'].StackName")
 if ! [ -n ${EXISTING_STACK} ]; then
-    echo "'${EXISTING_STACK}' already exists."
+    echo "'${EXISTING_STACK}' already exists.  In the future let's call update-stack..."
     exit 0
 fi
 aws cloudformation deploy \

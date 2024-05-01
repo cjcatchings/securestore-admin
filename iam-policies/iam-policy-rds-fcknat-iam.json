@@ -1,0 +1,61 @@
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Effect": "Allow",
+            "Resource": "*",
+            "Action": [
+                "iam:PassRole"
+            ],
+            "Condition": {
+                "StringEquals": {
+                    "iam:PassedToService": [
+                        "autoscaling.amazonaws.com",
+                        "ec2scheduled.amazonaws.com",
+                        "elasticloadbalancing.amazonaws.com",
+                        "eks.amazonaws.com",
+                        "eks-fargate-pods.amazonaws.com",
+                        "eks-nodegroup.amazonaws.com",
+                        "spot.amazonaws.com",
+                        "spotfleet.amazonaws.com",
+                        "transitgateway.amazonaws.com",
+                        "codepipeline.amazonaws.com",
+                        "codebuild.amazonaws.com",
+                        "ec2.amazonaws.com"
+                    ]
+                }
+            }
+        },{
+            "Effect": "Allow",
+            "Resource": "*",
+            "Action": [
+                "iam:CreatePolicy",
+                "iam:CreateRole",
+                "iam:DeletePolicy",
+                "iam:DeleteRole",
+                "iam:GetPolicy",
+                "iam:GetRole",
+                "iam:GetRolePolicy",
+                "iam:PutRolePolicy",
+                "iam:DeleteRolePolicy",
+                "iam:ListPolicies",
+                "iam:ListPolicyTags",
+                "iam:ListRolePolicies",
+                "iam:ListRoleTags",
+                "iam:ListRoles",
+                "iam:CreateInstanceProfile",
+                "iam:DeleteInstanceProfile",
+                "iam:GetInstanceProfile",
+                "iam:RemoveRoleFromInstanceProfile",
+                "iam:AddRoleToInstanceProfile",
+                "iam:AttachRolePolicy",
+                "iam:DetachRolePolicy",
+                "iam:TagRole",
+                "iam:UntagRole",
+                "iam:TagPolicy",
+                "iam:UntagPolicy",
+                "iam:ListAttachedRolePolicies"
+            ]
+        }
+    ]
+}

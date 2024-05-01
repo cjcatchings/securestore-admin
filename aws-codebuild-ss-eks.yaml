@@ -17,200 +17,13 @@ Parameters:
     Default: secstorewkc003
   
 Resources:
-  EksServicePolicyIAM:
-    Type: AWS::IAM::Policy
-    Properties:
-      PolicyName: !Sub '${SecureStoreEksIAMPxSx}-SvcPolicyIAM'
-      Roles:
-        - !Ref EksServiceRole
-      PolicyDocument:
-        Version: "2012-10-17"
-        Statement:
-          - Effect: Allow
-            Resource: '*'
-            Action:
-              - "iam:PassRole"
-            Condition:
-              StringEquals:
-                "iam:PassedToService":
-                  - "autoscaling.amazonaws.com"
-                  - "ec2scheduled.amazonaws.com"
-                  - "elasticloadbalancing.amazonaws.com"
-                  - "eks.amazonaws.com"
-                  - "eks-fargate-pods.amazonaws.com"
-                  - "eks-nodegroup.amazonaws.com"
-                  - "spot.amazonaws.com"
-                  - "spotfleet.amazonaws.com"
-                  - "transitgateway.amazonaws.com"
-                  - "codepipeline.amazonaws.com"
-                  - "codebuild.amazonaws.com"
-                  - "ec2.amazonaws.com"
-          - Effect: Allow
-            Resource: '*'
-            Action:
-              - "iam:CreatePolicy"
-              - "iam:CreateRole"
-              - "iam:DeletePolicy"
-              - "iam:DeleteRole"
-              - "iam:GetPolicy"
-              - "iam:GetRole"
-              - "iam:GetRolePolicy"
-              - "iam:PutRolePolicy"
-              - "iam:DeleteRolePolicy"
-              - "iam:ListPolicies"
-              - "iam:ListPolicyTags"
-              - "iam:ListRolePolicies"
-              - "iam:ListRoleTags"
-              - "iam:ListRoles"
-              - "iam:CreateInstanceProfile"
-              - "iam:DeleteInstanceProfile"
-              - "iam:GetInstanceProfile"
-              - "iam:RemoveRoleFromInstanceProfile"
-              - "iam:AddRoleToInstanceProfile"
-              - "iam:AttachRolePolicy"
-              - "iam:DetachRolePolicy"
-              - "iam:TagRole"
-              - "iam:UntagRole"
-              - "iam:TagPolicy"
-              - "iam:UntagPolicy"
-              - "iam:ListAttachedRolePolicies"
-  EksServicePolicy:
+  EksServicePolicyWAccount:
     Type: AWS::IAM::Policy
     Properties:
       PolicyName: !Sub '${SecureStoreEksIAMPxSx}-SvcPolicy'
       PolicyDocument:
         Version: "2012-10-17"
         Statement:
-          - Effect: Allow
-            Action:
-              - 'rds:CreateDBInstance'
-              - 'rds:DeleteDBInstance'
-              - 'rds:DescribeDBInstances'
-              - 'rds:DescribeDBSnapshots'
-              - 'rds:RestoreDBInstanceFromDBSnapshot'
-              - 'rds:ModifyDBInstance'
-            Resource: '*'
-            #Condition:
-            #  StringEquals:
-            #    "rds:snapshot-tag/CJCProjectName": 
-            #      - "SecureStore"
-          - Effect: Allow
-            Action:
-              - 'rds:CreateDBSubnetGroup'
-              - 'rds:DeleteDBSubnetGroup'
-              - 'rds:DescribeDBSubnetGroups'
-            Resource: '*'
-          - Effect: Allow
-            Action:
-              - 'ec2:CreateVpc'
-              - 'ec2:DeleteVpc'
-              - 'ec2:DescribeImages'
-              - 'ec2:CreateSubnet'
-              - 'ec2:DeleteSubnet'
-              - 'ec2:DescribeAvailabilityZones'
-              - 'ec2:CreateRouteTable'
-              - 'ec2:CreateRoute'
-              - 'ec2:CreateInternetGateway'
-              - 'ec2:AttachInternetGateway'
-              - 'ec2:DetachInternetGateway'
-              - 'ec2:AssociateRouteTable'
-              - 'ec2:DisassociateRouteTable'
-              - 'ec2:ReplaceRouteTableAssociation'
-              - 'ec2:ModifyVpcAttribute'
-              - 'ec2:DeleteRouteTable'
-              - 'ec2:CreateRoute'
-              - 'ec2:ReplaceRoute'
-              - 'ec2:DeleteRoute'
-              - 'ec2:RevokeSecurityGroupIngress'
-              - 'ec2:AuthorizeSecurityGroupEgress'
-              - 'ec2:AuthorizeSecurityGroupIngress'
-              - 'ec2:UpdateSecurityGroupRuleDescriptionsEgress'
-              - 'ec2:RevokeSecurityGroupEgress'
-              - 'ec2:DeleteSecurityGroup'
-              - 'ec2:ModifySecurityGroupRules'
-              - 'ec2:UpdateSecurityGroupRuleDescriptionsIngress'
-              - 'ec2:DeleteInternetGateway'
-              - 'ec2:CreateSecurityGroup'
-              - 'ec2:CreateTags'
-              - 'ec2:DescribeSecurityGroupRules'
-              - 'ec2:DescribeVpcs'
-              - 'ec2:DescribeSecurityGroups'
-              - 'ec2:ModifySecurityGroupRules'
-              - 'ec2:DescribeSecurityGroups'
-              - 'ec2:DescribeSecurityGroupRules'
-              - 'ec2:DescribeTags'
-              - 'ec2:StopInstances'
-              - 'ec2:DescribeInstances'
-              - 'ec2:TerminateInstances'
-              - 'ec2:ModifySubnetAttribute'
-              - 'ec2:DescribeAccountAttributes'
-              - 'ec2:DescribeAddresses'
-              - 'ec2:DescribeAvailabilityZones'
-              - 'ec2:DescribeClientVpnEndpoints'
-              - 'ec2:DescribeCustomerGateways'
-              - 'ec2:DescribeDhcpOptions'
-              - 'ec2:DescribeEgressOnlyInternetGateways'
-              - 'ec2:DescribeFlowLogs'
-              - 'ec2:DescribeInternetGateways'
-              - 'ec2:DescribeManagedPrefixLists'
-              - 'ec2:DescribeMovingAddresses'
-              - 'ec2:DescribeNatGateways'
-              - 'ec2:DescribeNetworkAcls'
-              - 'ec2:DescribeNetworkInterfaceAttribute'
-              - 'ec2:DescribeNetworkInterfacePermissions'
-              - 'ec2:DescribeNetworkInterfaces'
-              - 'ec2:DescribePrefixLists'
-              - 'ec2:DescribeRouteTables'
-              - 'ec2:DescribeSecurityGroupReferences'
-              - 'ec2:DescribeSecurityGroups'
-              - 'ec2:DescribeSecurityGroupRules'
-              - 'ec2:DescribeStaleSecurityGroups'
-              - 'ec2:DescribeSubnets'
-              - 'ec2:DescribeTags'
-              - 'ec2:DescribeTrafficMirrorFilters'
-              - 'ec2:DescribeTrafficMirrorSessions'
-              - 'ec2:DescribeTrafficMirrorTargets'
-              - 'ec2:DescribeTransitGateways'
-              - 'ec2:DescribeTransitGatewayVpcAttachments'
-              - 'ec2:DescribeTransitGatewayRouteTables'
-              - 'ec2:DescribeVpcAttribute'
-              - 'ec2:DescribeVpcClassicLink'
-              - 'ec2:DescribeVpcClassicLinkDnsSupport'
-              - 'ec2:DescribeVpcEndpoints'
-              - 'ec2:DescribeVpcEndpointConnectionNotifications'
-              - 'ec2:DescribeVpcEndpointConnections'
-              - 'ec2:DescribeVpcEndpointServiceConfigurations'
-              - 'ec2:DescribeVpcEndpointServicePermissions'
-              - 'ec2:DescribeVpcEndpointServices'
-              - 'ec2:DescribeVpcPeeringConnections'
-              - 'ec2:DescribeVpcs'
-              - 'ec2:DescribeVpnConnections'
-              - 'ec2:DescribeVpnGateways'
-              - 'ec2:GetManagedPrefixListAssociations'
-              - 'ec2:GetManagedPrefixListEntries'
-              - 'ec2:AssociateIamInstanceProfile'
-              - 'ec2:AttachNetworkInterface'
-              - 'ec2:CreateNetworkInterface'
-              - 'ec2:CreateNetworkInterfacePermission'
-              - 'ec2:ModifyNetworkInterfaceAttribute'
-              - 'ec2:DeleteNetworkInterface'
-              - 'ec2:DeleteNetworkInterfacePermission'
-              - 'ec2:DetachNetworkInterface'
-              - 'ec2:RunInstances'
-              - 'ec2:StartInstances'
-            Resource: '*'
-          - Effect: Deny
-            Action:
-              - 'ec2:RunInstances'
-              - 'ec2:StartInstances'
-            Resource: '*'
-            Condition:
-              "ForAnyValue:StringNotLike":
-                "ec2:InstanceType":
-                  - '*.nano'
-                  - '*.micro'
-                  - '*.small'
-                  - '*.medium'
           - Effect: Allow
             Action:
               - 'logs:CreateLogGroup'
@@ -221,19 +34,6 @@ Resources:
               - !Sub arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/codebuild/*
           - Effect: Allow
             Action:
-              - 'cloudformation:CreateStack'
-              - 'cloudformation:DescribeStacks'
-              - 'cloudformation:DescribeStackEvents'
-              - 'cloudformation:DescribeStackResources'
-              - 'cloudformation:GetTemplate'
-              - 'cloudformation:ValidateTemplate'
-              - 'cloudformation:ListStacks'
-              - 'cloudformation:CreateChangeSet'
-              - 'cloudformation:DescribeChangeSet'
-              - 'cloudformation:ExecuteChangeSet'
-            Resource: '*'
-          - Effect: Allow
-            Action:
               - 'dynamodb:GetItem'
               - 'dynamodb:PutItem'
               - 'dynamodb:DeleteItem'
@@ -241,14 +41,6 @@ Resources:
               - 'dynamodb:UpdateItem'
             Resource:
               - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/SecStoreAndMoreAdmin
-          - Effect: Allow
-            Action:
-              - 'dynamodb:ListTables'
-            Resource: '*'
-          - Effect: Allow
-            Action:
-              - ssm:GetParameters
-            Resource: '*'
       Roles:
         - !Ref EksServiceRole
   EksServiceRole:
@@ -264,6 +56,9 @@ Resources:
                 - codebuild.amazonaws.com
             Action:
               - 'sts:AssumeRole'
+      ManagedPolicyArns:
+        - !Sub arn:aws:iam::${AWS::AccountId}:policy/SecStoreRDSFckNatIAM
+        - !Sub arn:aws:iam::${AWS::AccountId}:policy/SecStoreRDSFckNat
   EksCodeBuildProject:
     Type:  AWS::CodeBuild::Project
     Properties:
