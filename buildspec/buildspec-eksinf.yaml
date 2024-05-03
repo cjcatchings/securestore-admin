@@ -15,3 +15,7 @@ phases:
       - ./cfn-loaders/load_fnat_stack.sh
       - |
         [ $? -eq 0 ]  || exit 1
+      - echo "Now create EKS Cluster"
+      - ./cfn-loaders/load_eks_cluster_stack.sh
+      - |
+        [ $? -eq 0 ]  || exit 1

@@ -5,3 +5,4 @@ import/.DS_Store
 **/*.csr
 set_secret_vars.sh
 cfn-loaders/spadscript.sh
+iam-policies/*-sub.json

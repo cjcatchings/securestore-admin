@@ -18,6 +18,13 @@ aws cloudformation deploy \
   --stack-name Eks-Rds-SS-Stack-CF \
   --parameter-overrides "SnapshotIdentifierName=$RDS_SS_SNAPSHOT"
 
+STACK_FAIL_REASONS=$(aws cloudformation describe-stack-events --stack-name Eks-Rds-SS-Stack-CF --max-items 2 \
+  --query 'StackEvents[].ResourceStatusReason')
+if [ -z ${STACK_FAIL_REASONS} ]; then
+  echo "RDS stack creation failed: ${STACK_FAIL_REASONS}"
+  exit 1
+fi
+
 if [ $(aws dynamodb list-tables --query "contains(TableNames, 'SecStoreAndMoreAdmin')") == true ]; then
   DBS_URI_RI="SecStoreRDSUri"
   echo "SecStoreAndMoreAdmin table found.  Saving RDS URL to RI $DBS_URI_RI."

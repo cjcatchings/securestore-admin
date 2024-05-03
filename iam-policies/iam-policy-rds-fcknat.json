@@ -3,24 +3,26 @@
     "Statement": [
         {
             "Effect": "Allow",
-            "Resource": "*",
+            "Resource": "arn:aws:rds:${AWS_REGION}:${AWS_ACCOUNT_ID}:db:securestore",
             "Action": [
                 "rds:CreateDBInstance",
                 "rds:DeleteDBInstance",
                 "rds:DescribeDBInstances",
                 "rds:ModifyDBInstance"
+            ]
+        },{
+            "Effect": "Allow",
+            "Resource": [
+                "arn:aws:rds:${AWS_REGION}:${AWS_ACCOUNT_ID}:db:securestore",
+                "arn:aws:rds:${AWS_REGION}:${AWS_ACCOUNT_ID}:snapshot:secstorewkc003",
+                "arn:aws:rds:${AWS_REGION}:${AWS_ACCOUNT_ID}:subgrp:eks-rd-ss-stack*"
             ],
-            "Condition": {
-                "StringEquals": {
-                    "rds:DatabaseName": "${RDS_DATABASE_NAME}"
-                }
-            }
+            "Action": "rds:RestoreDBInstanceFromDBSnapshot"
         },{
             "Effect": "Allow",
             "Resource": "*",
             "Action": [
-                "rds:DescribeDBSnapshots",
-                "rds:RestoreDBInstanceFromDBSnapshot"
+                "rds:DescribeDBSnapshots"
             ],
             "Condition": {
                 "StringEquals":{
@@ -32,7 +34,9 @@
             "Action": [
                 "rds:CreateDBSubnetGroup",
                 "rds:DeleteDBSubnetGroup",
-                "rds:DescribeDBSubnetGroups"
+                "rds:DescribeDBSubnetGroups",
+                "rds:AddTagsToResource",
+                "rds:RemoveTagsFromResource"
             ],
             "Resource": "*",
             "Condition": {

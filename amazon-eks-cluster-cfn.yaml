@@ -69,7 +69,7 @@ Resources:
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/AmazonEKSClusterPolicy
         - arn:aws:iam::aws:policy/AmazonEKSServicePolicy
-      RoleName: !Sub "${AWS::StackName}-EksSvcRole"
+      RoleName: SecureStore-EksSvcRole
       
 Outputs:
   EksClusterEndpoint:

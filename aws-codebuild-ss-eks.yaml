@@ -59,6 +59,7 @@ Resources:
       ManagedPolicyArns:
         - !Sub arn:aws:iam::${AWS::AccountId}:policy/SecStoreRDSFckNatIAM
         - !Sub arn:aws:iam::${AWS::AccountId}:policy/SecStoreRDSFckNat
+        - !Sub arn:aws:iam::${AWS::AccountId}:policy/SecSetoreEksCluster
   EksCodeBuildProject:
     Type:  AWS::CodeBuild::Project
     Properties:
